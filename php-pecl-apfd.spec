@@ -1,3 +1,5 @@
+# centos/sclo spec file for php-pecl-apfd, from:
+#
 # remirepo spec file for php-pecl-apfd
 # with SCL compatibility, from:
 #
@@ -11,9 +13,9 @@
 #
 %if 0%{?scl:1}
 %if "%{scl}" == "rh-php56"
-%global sub_prefix more-php56-
+%global sub_prefix sclo-php56-
 %else
-%global sub_prefix %{scl_prefix}
+%global sub_prefix sclo-%{scl_prefix}
 %endif
 %endif
 
@@ -22,9 +24,8 @@
 %{!?__pecl:      %global __pecl      %{_bindir}/pecl}
 %{!?__php:       %global __php       %{_bindir}/php}
 
-%global with_zts   0%{?__ztsphp:1}
 %global pecl_name  apfd
-%global with_tests %{?_without_tests:0}%{!?_without_tests:1}
+%global with_tests 0%{!?_without_tests:1}
 %if "%{php_version}" < "5.6"
 %global ini_name   %{pecl_name}.ini
 %else
@@ -35,46 +36,26 @@
 Summary:        Always Populate Form Data
 Name:           %{?sub_prefix}php-pecl-%{pecl_name}
 Version:        1.0.1
-Release:        5%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
+Release:        1%{?dist}
 License:        BSD
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/%{pecl_name}
 Source0:        http://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  %{?scl_prefix}php-devel > 5.3
 BuildRequires:  %{?scl_prefix}php-pear
 
 Requires:       %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:       %{?scl_prefix}php(api) = %{php_core_api}
-%{?_sclreq:Requires: %{?scl_prefix}runtime%{?_sclreq}%{?_isa}}
 
 Provides:       %{?scl_prefix}php-%{pecl_name} = %{version}
 Provides:       %{?scl_prefix}php-%{pecl_name}%{?_isa} = %{version}
 Provides:       %{?scl_prefix}php-pecl(%{pecl_name}) = %{version}
 Provides:       %{?scl_prefix}php-pecl(%{pecl_name})%{?_isa} = %{version}
+Provides:       %{?scl_prefix}php-pecl-%{pecl_name} = %{version}
+Provides:       %{?scl_prefix}php-pecl-%{pecl_name}%{?_isa} = %{version}
 # Split off pecl/http
 Conflicts:      %{?scl_prefix}php-pecl(http) < 2.4
-
-%if "%{?vendor}" == "Remi Collet" && 0%{!?scl:1}
-# Other third party repo stuff
-Obsoletes:     php53-pecl-%{pecl_name}  <= %{version}
-Obsoletes:     php53u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php54-pecl-%{pecl_name}  <= %{version}
-Obsoletes:     php54w-pecl-%{pecl_name} <= %{version}
-%if "%{php_version}" > "5.5"
-Obsoletes:     php55u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php55w-pecl-%{pecl_name} <= %{version}
-%endif
-%if "%{php_version}" > "5.6"
-Obsoletes:     php56u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php56w-pecl-%{pecl_name} <= %{version}
-%endif
-%if "%{php_version}" > "7.0"
-Obsoletes:     php70u-pecl-%{pecl_name} <= %{version}
-Obsoletes:     php70w-pecl-%{pecl_name} <= %{version}
-%endif
-%endif
 
 %if 0%{?fedora} < 20 && 0%{?rhel} < 7
 # Filter shared private
@@ -90,7 +71,7 @@ handler, like "json_post") without regard to the request's request method.
 
 This extension does not provide any INI entries, constants, functions or classes.
 
-Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')%{?scl: as Software Collection (%{scl})}.
+Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')%{?scl: as Software Collection (%{scl} by %{?scl_vendor}%{!?scl_vendor:rh})}.
 
 
 %prep
@@ -109,11 +90,6 @@ if test "x${extver}" != "x%{version}%{?prever}"; then
 fi
 cd ..
 
-%if %{with_zts}
-# Duplicate source tree for NTS / ZTS build
-cp -pr NTS ZTS
-%endif
-
 # Create configuration file
 cat << 'EOF' | tee %{ini_name}
 ; Enable '%{summary}' extension module
@@ -129,19 +105,8 @@ cd NTS
     --with-php-config=%{_bindir}/php-config
 make %{?_smp_mflags}
 
-%if %{with_zts}
-cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --enable-apfd \
-    --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
-%endif
-
 
 %install
-rm -rf %{buildroot}
-
 make -C NTS install INSTALL_ROOT=%{buildroot}
 
 # install config file
@@ -149,12 +114,6 @@ install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 # Install XML package description
 install -D -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
-
-%if %{with_zts}
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
-%endif
 
 # Documentation
 for i in $(grep 'role="doc"' package.xml | sed -e 's/^.*name="//;s/".*$//')
@@ -196,39 +155,18 @@ REPORT_EXIT_STATUS=1 \
 %{__php} -n run-tests.php --show-diff
 %endif
 
-%if %{with_zts}
-cd ../ZTS
-: Minimal load test for ZTS extension
-%{__ztsphp} --no-php-ini \
-    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
-
-%if %{with_tests}
-: Upstream test suite skipped as zts-php-cgi not available
-%endif
-%endif
-
-
-%clean
-rm -rf %{buildroot}
-
 
 %files
-%defattr(-,root,root,-)
 %doc %{pecl_docdir}/%{pecl_name}
-%{?_licensedir:%license NTS/LICENSE}
-
 %{pecl_xmldir}/%{name}.xml
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
 
-%if %{with_zts}
-%config(noreplace) %{php_ztsinidir}/%{ini_name}
-%{php_ztsextdir}/%{pecl_name}.so
-%endif
-
 
 %changelog
+* Tue Jan 26 2016 Remi Collet <remi@fedoraproject.org> - 1.0.1-1
+- cleanup for SCLo build
+
 * Tue Oct 13 2015 Remi Collet <remi@fedoraproject.org> - 1.0.1-5
 - rebuild for PHP 7.0.0RC5 new API version
 
