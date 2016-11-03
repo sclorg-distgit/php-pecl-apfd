@@ -12,17 +12,15 @@
 # Please, preserve the changelog entries
 #
 %if 0%{?scl:1}
+%global sub_prefix sclo-%{scl_prefix}
 %if "%{scl}" == "rh-php56"
 %global sub_prefix sclo-php56-
-%else
-%global sub_prefix sclo-%{scl_prefix}
 %endif
+%if "%{scl}" == "rh-php70"
+%global sub_prefix sclo-php70-
 %endif
-
-%{?scl:          %scl_package        php-pecl-apfd}
-%{!?php_inidir:  %global php_inidir  %{_sysconfdir}/php.d}
-%{!?__pecl:      %global __pecl      %{_bindir}/pecl}
-%{!?__php:       %global __php       %{_bindir}/php}
+%scl_package        php-pecl-apfd
+%endif
 
 %global pecl_name  apfd
 %global with_tests 0%{!?_without_tests:1}
@@ -36,7 +34,7 @@
 Summary:        Always Populate Form Data
 Name:           %{?sub_prefix}php-pecl-%{pecl_name}
 Version:        1.0.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        BSD
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/%{pecl_name}
@@ -164,6 +162,9 @@ REPORT_EXIT_STATUS=1 \
 
 
 %changelog
+* Thu Nov  3 2016 Remi Collet <remi@fedoraproject.org> - 1.0.1-2
+- minor change for sclo-php70
+
 * Tue Jan 26 2016 Remi Collet <remi@fedoraproject.org> - 1.0.1-1
 - cleanup for SCLo build
 
