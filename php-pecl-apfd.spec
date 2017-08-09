@@ -19,6 +19,9 @@
 %if "%{scl}" == "rh-php70"
 %global sub_prefix sclo-php70-
 %endif
+%if "%{scl}" == "rh-php71"
+%global sub_prefix sclo-php71-
+%endif
 %scl_package        php-pecl-apfd
 %endif
 
@@ -34,7 +37,7 @@
 Summary:        Always Populate Form Data
 Name:           %{?sub_prefix}php-pecl-%{pecl_name}
 Version:        1.0.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        BSD
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/%{pecl_name}
@@ -162,6 +165,9 @@ REPORT_EXIT_STATUS=1 \
 
 
 %changelog
+* Wed Aug  9 2017 Remi Collet <remi@fedoraproject.org> - 1.0.1-3
+- minor change for sclo-php71
+
 * Thu Nov  3 2016 Remi Collet <remi@fedoraproject.org> - 1.0.1-2
 - minor change for sclo-php70
 
